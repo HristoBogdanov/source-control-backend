@@ -90,9 +90,9 @@ public class Program
             options.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuer = true,  // Validate the token issuer.
-                ValidIssuer = builder.Configuration["JWT:Issuer"],  // Gets the issuer from configuration.
+                ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
                 ValidateAudience = true,  // Validate the token audience.
-                ValidAudience = builder.Configuration["JWT:Audience"],  // Gets the audience from configuration.
+                ValidAudience = builder.Configuration["JwtSettings:Audience"],
                 ValidateIssuerSigningKey = true,  // Ensures the token has a valid signing key.
                 IssuerSigningKey = new SymmetricSecurityKey(  // Signing key used to verify the token.
                     System.Text.Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:SigningKey"]!)
@@ -104,6 +104,7 @@ public class Program
         //Dependancy Injection
         builder.Services.AddScoped<ITokenService, TokenService>();
         builder.Services.AddScoped<IUserRepository, UserRepository>();
+        builder.Services.AddScoped<IRepositoryRepository, RepositoryRepository>();
 
 
         var app = builder.Build();
@@ -124,8 +125,8 @@ public class Program
              .AllowAnyMethod()
              .AllowAnyHeader()
              .AllowCredentials()
-             // .WithOrigins("https://localhost:44351)) // Uncomment and customize for specific allowed origins.
-             .SetIsOriginAllowed(origin => true));  // Allows any origin (can be customized).
+             // .WithOrigins("https://localhost:44351))
+             .SetIsOriginAllowed(origin => true));
 
         app.UseAuthentication();  // Enables JWT Bearer authentication.
 

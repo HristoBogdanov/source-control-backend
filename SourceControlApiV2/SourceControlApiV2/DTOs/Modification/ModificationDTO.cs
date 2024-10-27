@@ -1,28 +1,22 @@
-﻿using Microsoft.EntityFrameworkCore;
-using static SourceControlAPI.Constants.DataTypes;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using SourceControlAPI.Constants;
 using System.ComponentModel.DataAnnotations;
-using SourceControlAPI.Constants;
 
 namespace SourceControlApiV2.DTOs.Modification
 {
     public class ModificationDTO
     {
-        [Required(ErrorMessage =ErrorMessages.requiredField)]
-        [StringLength(50, MinimumLength = 5, ErrorMessage = ErrorMessages.lengthField)]
+        [Required(ErrorMessage = CommonErrorMessages.RequiredName)]
+        [StringLength(50, MinimumLength = 5, ErrorMessage = CommonErrorMessages.NameLength)]
         public string FileName { get; set; } = null!;
 
-        [Required(ErrorMessage = ErrorMessages.requiredField)]
-
-        [StringLength(1500, MinimumLength = 1, ErrorMessage = ErrorMessages.lengthField)]
+        [Required(ErrorMessage = ModificationErrorMessages.DifferencesRequired)]
+        [StringLength(1500, MinimumLength = 1, ErrorMessage = ModificationErrorMessages.DifferencesLength)]
         public string FileDifferences { get; set; } = null!;
 
-        [Required(ErrorMessage = ErrorMessages.requiredField)]
+        [Required(ErrorMessage = ModificationErrorMessages.TypeModificationRequired)]
+        public string modificationType { get; set; } = null!;
 
-        [EnumDataType(typeof(ModificationType))]
-        public ModificationType modificationType { get; set; }
-
-        [Required(ErrorMessage = ErrorMessages.requiredField)]
+        [Required(ErrorMessage = CommitErrorMessages.CommitIdRequired)]
         public Guid CommitId { get; set; }
     }
 }

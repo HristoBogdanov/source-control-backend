@@ -2,8 +2,11 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using SourceControlAPI.Constants;
 using SourceControlApiV2.Data;
+using SourceControlApiV2.DTOs.Repository;
 using SourceControlApiV2.Extensions;
+using SourceControlApiV2.Interfaces;
 using SourceControlApiV2.Models;
 
 namespace SourceControlApiV2.Controllers
@@ -15,28 +18,23 @@ namespace SourceControlApiV2.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IRepositoryRepository _repositoryRepository;
 
-        public RepositoryController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        public RepositoryController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IRepositoryRepository repository)
         {
             _context = context;
             _userManager = userManager;
+            _repositoryRepository = repository;
         }
 
         [HttpGet("all")]
        public async Task<IActionResult> GetAllRepositories([FromQuery] string? search)
-        {
+       {
             try
             {
                 var user = await _userManager.FindByNameAsync(User.GetUsername());
+                var repositories = await _repositoryRepository.GetRepositories(user.Id, search);
 
-                var repositories = await _context.Repositories
-                    .Where(r => r.IsDeleted == false)
-                    .Where(r => r.IsPublic == true 
-                    || r.OwnerId == user.Id
-                    || r.Contributors.Any(c => c.UserId == user.Id))
-                    .Where(r => search == null || r.Name.Contains(search))
-                    .OrderBy(r => r.CreatedAt)
-                    .ToListAsync();
                 return Ok(repositories);
             }
             catch (Exception ex)
@@ -56,58 +54,29 @@ namespace SourceControlApiV2.Controllers
             try
             {
                 var user = await _userManager.FindByNameAsync(User.GetUsername());
+                RepositoryDTO repository = await _repositoryRepository.CreateRepository(repositoryDTO, user.Id);
 
-                var repository = new Repository
-                {
-                    Name = repositoryDTO.Name,
-                    Description = repositoryDTO.Description,
-                    IsPublic = repositoryDTO.IsPublic,
-                    OwnerId = user.Id
-                };
-
-                await _context.Repositories.AddAsync(repository);
-                await _context.SaveChangesAsync();
-
-                return Ok(repositoryDTO);
+                return Ok(repository);
             }
             catch (Exception ex)
             {
                 return StatusCode(500, ex.Message);
             }
+
         }
 
         [HttpPost("add-contributor/{repositoryId}")]
         public async Task<IActionResult> AddContributorToRepository([FromBody] string contributorId, string repositoryId)
         {
             var repositoryIdGuid = Guid.Parse(repositoryId);
-
             var contributroIdGuid = Guid.Parse(contributorId);
+            var user = await _userManager.FindByNameAsync(User.GetUsername());
 
-            if (contributorId == null)
+            try 
             {
-                return BadRequest(ErrorMessages.ContributerIdRequired);
-            }
+                var repoContributors = await _repositoryRepository.AddContributor(repositoryIdGuid, contributroIdGuid, user.Id);
 
-            var contributor = await _context.Users.FirstOrDefaultAsync(u => u.Id == contributroIdGuid);
-            var repository = await _context.Repositories.Where(r => r.IsDeleted == false).FirstOrDefaultAsync(r => r.Id == repositoryIdGuid);
-
-            if(contributor == null || repository == null)
-            {
-                return BadRequest(ErrorMessages.InvalidData);
-            }
-
-            try
-            {
-                var contribution = new RepositoryContributor
-                {
-                    UserId = contributroIdGuid,
-                    RepositoryId = repositoryIdGuid
-                };
-
-                await _context.RepositoryContributors.AddAsync(contribution);
-                await _context.SaveChangesAsync();
-
-                return Ok(contribution);
+                return Ok(repoContributors);
             }
             catch (Exception ex)
             {
@@ -122,37 +91,7 @@ namespace SourceControlApiV2.Controllers
 
             var contributorIdGuid = Guid.Parse(contributorId);
 
-            if (contributorId == null)
-            {
-                return BadRequest(ErrorMessages.ContributerIdRequired);
-            }
-
-            var contributor = await _context.Users.FirstOrDefaultAsync(u => u.Id == contributorIdGuid);
-            var repository = await _context.Repositories.Where(r => r.IsDeleted == false).FirstOrDefaultAsync(r => r.Id == repositoryIdGuid);
-
-            if (contributor == null || repository == null)
-            {
-                return BadRequest(ErrorMessages.InvalidData);
-            }
-
-            try
-            {
-                var contribution = _context.RepositoryContributors.FirstOrDefault(c => c.UserId == contributorIdGuid && c.RepositoryId == repositoryIdGuid);
-
-                if(contribution == null)
-                {
-                    return BadRequest(ErrorMessages.InvalidData);
-                }
-
-                _context.RepositoryContributors.Remove(contribution);
-                await _context.SaveChangesAsync();
-
-                return Ok(contribution);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex.Message);
-            }
+            
         }
 
         [HttpPost("delete/{deleteRepositoryId}")]

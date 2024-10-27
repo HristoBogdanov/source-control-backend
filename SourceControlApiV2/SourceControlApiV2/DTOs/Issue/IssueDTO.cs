@@ -1,31 +1,26 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using static SourceControlAPI.Constants.DataTypes;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using SourceControlAPI.Constants;
 
 namespace SourceControlApiV2.DTOs.Issue
 {
     public class IssueDTO
     {
-        [Required(ErrorMessage = ErrorMessages.requiredField)]
-        [StringLength(50, MinimumLength = 3, ErrorMessage = ErrorMessages.lengthField)]
+        [Required(ErrorMessage = CommonErrorMessages.RequiredTitle)]
+        [StringLength(50, MinimumLength = 3, ErrorMessage = CommonErrorMessages.TitleLength)]
         public string Title { get; set; } = null!;
 
-        [Required(ErrorMessage = ErrorMessages.requiredField)]
-        [StringLength(300, MinimumLength = 10, ErrorMessage = ErrorMessages.lengthField)]
+        [Required(ErrorMessage = CommonErrorMessages.RequiredDescription)]
+        [StringLength(300, MinimumLength = 10, ErrorMessage = CommonErrorMessages.LengthDescription)]
         public string Description { get; set; } = null!;
 
-        [Required(ErrorMessage = ErrorMessages.requiredField)]
-        [StringLength(150, ErrorMessage = ErrorMessages.lengthField)]
+        [Required(ErrorMessage = IssueErrorMessages.TagsRequired)]
+        [StringLength(150, ErrorMessage = IssueErrorMessages.TagsLength)]
         public string Tags { get; set; } = null!;
 
-        [Required(ErrorMessage = ErrorMessages.requiredField)]
-        [EnumDataType(typeof(IssueStatusType))]
-        public IssueStatusType Status { get; set; }
+        [Required(ErrorMessage = IssueErrorMessages.StatusRequired)]
+        public string Status { get; set; } = null!;
 
-        [Required(ErrorMessage = ErrorMessages.requiredField)]
+        [Required(ErrorMessage = RepositoryErrorMessages.RepossitoryIdRequired)]
         public Guid RepositoryId { get; set; }
     }
 }

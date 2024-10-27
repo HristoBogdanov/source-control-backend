@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SourceControlApiV2.Data;
+using SourceControlApiV2.DTOs.Commit;
+using SourceControlApiV2.DTOs.PullRequest;
 using SourceControlApiV2.Extensions;
 using SourceControlApiV2.Models;
 

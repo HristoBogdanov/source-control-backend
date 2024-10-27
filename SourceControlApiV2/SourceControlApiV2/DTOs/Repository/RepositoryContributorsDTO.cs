@@ -1,9 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
-using SourceControlAPI.Constants;
+﻿using SourceControlAPI.Constants;
+using System.ComponentModel.DataAnnotations;
 
 namespace SourceControlApiV2.DTOs.Repository
 {
-    public class RepositoryDTO
+    public class RepositoryContributorsDTO
     {
         [Required(ErrorMessage = CommonErrorMessages.RequiredName)]
         [StringLength(50, MinimumLength = 3, ErrorMessage = CommonErrorMessages.NameLength)]
@@ -15,5 +15,7 @@ namespace SourceControlApiV2.DTOs.Repository
 
         [Required(ErrorMessage = RepositoryErrorMessages.VisibilityRequired)]
         public bool IsPublic { get; set; }
+
+        public ICollection<string> Contributors { get; set; } = new List<string>();
     }
 }
