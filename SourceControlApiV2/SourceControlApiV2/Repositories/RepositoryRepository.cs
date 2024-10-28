@@ -19,27 +19,24 @@ namespace SourceControlApiV2.Repositories
             _userManager = userManager;
         }
 
-        public async Task<List<RepositoryDTO>> GetRepositories(Guid UserId, string? search)
+        public async Task<List<RepositoryInfoDTO>> GetRepositories(Guid UserId, string? search)
         {
             try
             {
                 var repositories = await _context.Repositories
                     .Include(r => r.Owner)
-                    .Include(r => r.Contributors)
-                    .Include(r => r.Issues)
-                    .Include(r => r.Commits)
-                    .Include(r => r.PullRequests)
                     .Where(r => r.IsDeleted == false)
                     .Where(r => r.IsPublic == true
                     || r.OwnerId == UserId
                     || r.Contributors.Any(c => c.UserId == UserId))
                     .Where(r => search == null || r.Name.Contains(search))
                     .OrderBy(r => r.CreatedAt)
-                    .Select(r => new RepositoryDTO()
+                    .Select(r => new RepositoryInfoDTO()
                     {
                         Name = r.Name,
                         Description = r.Description,
                         IsPublic = r.IsPublic,
+                        OwnerName = r.Owner.UserName
                     })
                     .AsNoTracking()
                     .ToListAsync();
@@ -164,9 +161,29 @@ namespace SourceControlApiV2.Repositories
             }
         }
 
-        public Task<RepositoryDTO> DeleteRepository(RepositoryDTO repositoryDTO, Guid UserId)
+        public async Task<RepositoryDTO> DeleteRepository(Guid deleteRepositoryId, Guid UserId)
         {
-            throw new NotImplementedException();
+            var repository = await _context.Repositories.Where(r => r.IsDeleted == false).FirstOrDefaultAsync(r => r.Id == deleteRepositoryId);
+
+            if (repository == null)
+            {
+                throw new Exception(RepositoryErrorMessages.InvalidRepositoryId);
+            }
+
+            if (repository.Owner.Id != UserId)
+            {
+                throw new Exception(UserErrorMessages.UserDeletingRepository);
+            }
+
+            repository.IsDeleted = true;
+
+            await _context.SaveChangesAsync();
+            return new RepositoryDTO
+            {
+                Name = repository.Name,
+                Description = repository.Description,
+                IsPublic = repository.IsPublic
+            };
         }
     }
 }

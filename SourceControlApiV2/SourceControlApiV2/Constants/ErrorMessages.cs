@@ -23,6 +23,7 @@
         public const string UserIdRequired = "User id is required!";
         public const string UserIsNotContributor = "User is not a contributor!";
         public const string UserAddingContributors = "Only the owner can add contributors!";
+        public const string UserDeletingRepository = "Only the owner can delete the repository!";
     }
 
     public static class RepositoryErrorMessages

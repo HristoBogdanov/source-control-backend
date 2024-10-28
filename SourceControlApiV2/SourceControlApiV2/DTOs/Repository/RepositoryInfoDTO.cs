@@ -6,7 +6,5 @@
         public string Description { get; set; } = null!;
         public bool IsPublic { get; set; }
         public string OwnerName { get; set; } = null!;
-
-
     }
 }
